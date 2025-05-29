@@ -27,7 +27,8 @@ async function startBot() {
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const msg = messages[0]
         if (!msg.message || msg.key.fromMe) return
-
+        // tandai pesan sudah dibaca
+        await sock.readMessages([msg.key])
         const sender = msg.key.remoteJid
         if (!sender.endsWith('@s.whatsapp.net')) return
         // Ambil isi pesan dari berbagai tipe pesan teks
