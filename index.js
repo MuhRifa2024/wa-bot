@@ -15,10 +15,12 @@ async function startBot() {
             qrcode.generate(qr, { small: true })
         }
         if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect.error = new Boom(lastDisconnect?.error))?.output?.statusCode !== DisconnectReason.loggedOut
-            console.log('❌ Terputus. Reconnect?', shouldReconnect)
-            if (shouldReconnect) {
-                startBot()
+            const isLoggedOut = (lastDisconnect.error = new Boom(lastDisconnect?.error))?.output?.statusCode === DisconnectReason.loggedOut;
+            console.log('❌ Terputus. Reconnect?', !isLoggedOut);
+            if (!isLoggedOut) {
+                startBot();
+            } else {
+                console.log('❌ Session expired/logged out. Silakan scan QR ulang.');
             }
         } else if (connection === 'open') {
             console.log('✅ Bot terkoneksi ke WhatsApp')
