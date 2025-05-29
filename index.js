@@ -46,9 +46,18 @@ async function startBot() {
 
         if (pesan?.toLowerCase().includes("halo")) {
             console.log("Bot akan membalas pesan halo...")
-            await sock.sendMessage(sender, { text: "Hai juga dari bot 👋" })
-        } else if (pesan?.toLocaleLowerCase().includes ("siapa kamu")) {
+            await sock.sendMessage(sender, { text: "Hai juga 👋" })
+        } else if (pesan?.toLocaleLowerCase().includes("siapa kamu")) {
             await sock.sendMessage(sender, { text: "I'm a king of the kingdom, the bot that rules the chat! 👑" })
+        } else if (pesan?.toLocaleLowerCase().includes("saya ingin pesan")) {
+            await sock.sendMessage(sender, { text: "pesan apa? pesan cinta?" })
+        } else if (pesan?.toLocaleLowerCase().includes("masa gitu aja ga ngerti") ||
+            pesan?.toLocaleLowerCase().includes("masa gitu aja gak ngerti sih?") ||
+            pesan?.toLocaleLowerCase().includes("masa ga bisa") ||
+            pesan?.toLocaleLowerCase().includes("masa gitu aja ga bisa")) {
+            await sock.sendMessage(sender, { text: "Ya maaf, namanya juga BOT, B O T. Yang punya keterbatasan, manusia aja belum tentu ngerti apa yang kamu maksud 🙄" })
+        } else if (pesan !== "") {
+            await sock.sendMessage(sender, { text: "Maaf, saya tidak mengerti pesan tersebut. hehehe" })
         }
     })
 }
