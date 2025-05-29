@@ -1,6 +1,7 @@
 const { makeWASocket, DisconnectReason, useMultiFileAuthState } = require("@whiskeysockets/baileys")
 const { Boom } = require("@hapi/boom")
 const qrcode = require('qrcode-terminal') // install dulu: npm install qrcode-terminal
+const math = require('mathjs');
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys')
@@ -48,18 +49,33 @@ async function startBot() {
         if (pesan?.toLowerCase().includes("halo")) {
             console.log("Bot akan membalas pesan halo...")
             await sock.sendMessage(sender, { text: "Hai juga 👋" })
-        } else if (pesan?.toLocaleLowerCase().includes("siapa kamu")) {
+        } else if (pesan?.toLowerCase().includes("siapa kamu")) {
             await sock.sendMessage(sender, { text: "I'm a king of the kingdom, the bot that rules the chat! 👑" })
-        } else if (pesan?.toLocaleLowerCase().includes("saya ingin pesan")) {
+        } else if (pesan?.toLowerCase().includes("saya ingin pesan")) {
             await sock.sendMessage(sender, { text: "pesan apa? pesan cinta?" })
-        } else if (pesan?.toLocaleLowerCase().includes("masa gitu aja ga ngerti") ||
-            pesan?.toLocaleLowerCase().includes("masa gitu aja gak ngerti sih?") ||
-            pesan?.toLocaleLowerCase().includes("masa ga bisa") ||
-            pesan?.toLocaleLowerCase().includes("masa gitu aja ga bisa")) {
+        } else if (
+            pesan?.toLowerCase().includes("masa gitu aja ga ngerti") ||
+            pesan?.toLowerCase().includes("masa gitu aja gak ngerti sih?") ||
+            pesan?.toLowerCase().includes("masa ga bisa") ||
+            pesan?.toLowerCase().includes("masa gitu aja ga bisa")
+        ) {
             await sock.sendMessage(sender, { text: "Ya maaf, namanya juga BOT, B O T. Yang punya keterbatasan, manusia aja belum tentu ngerti apa yang kamu maksud 🙄" })
-        } else if (pesan !== "") {
-            await sock.sendMessage(sender, { text: "Maaf, saya tidak mengerti pesan tersebut. hehehe" })
+        } else if (/^[0-9+\-*/().\s=√²a-zA-Z]+$/.test(pesan)) {
+            // Preprocessing ekspresi matematika
+            let ekspresi = pesan
+                .replace(/=/g, '') // Hilangkan tanda '='
+                .replace(/√([0-9]+)/g, 'sqrt($1)') // Ganti '√25' jadi 'sqrt(25)'
+                .replace(/([0-9]+)²/g, '$1^2'); // Ganti '25²' jadi '25^2'
+            try {
+                const hasil = math.evaluate(ekspresi);
+                await sock.sendMessage(sender, { text: `Hasil: ${hasil}` });
+            } catch {
+                await sock.sendMessage(sender, { text: "Format matematika tidak dikenali." });
+            }
+        } else {
+            await sock.sendMessage(sender, { text: "Maaf, saya hanya bisa menjawab sapaan, dan ekspresi matematika sederhana." });
         }
     })
 }
+
 startBot()
