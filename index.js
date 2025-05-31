@@ -4,6 +4,21 @@ const qrcode = require('qrcode-terminal') // install dulu: npm install qrcode-te
 const math = require('mathjs');
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
+const QRCode = require('qrcode');
+
+let latestQR = null; // Untuk menyimpan QR terbaru
+
+// Server web untuk menampilkan QR di browser
+const app = express();
+app.get('/', (req, res) => {
+    if (!latestQR) return res.send('QR belum tersedia');
+    QRCode.toDataURL(latestQR, (err, url) => {
+        if (err) return res.send('Gagal membuat QR');
+        res.send(`<h2>Scan QR WhatsApp</h2><img src="${url}" />`);
+    });
+});
+app.listen(3000, '0.0.0.0', () => console.log('Buka http://192.168.0.101:3000 untuk scan QR WhatsApp'));
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys')
@@ -14,7 +29,8 @@ async function startBot() {
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect, qr } = update
         if (qr) {
-            qrcode.generate(qr, { small: true })
+            latestQR = qr; // Simpan QR terbaru untuk web
+            qrcode.generate(qr, { small: true }) // Tetap tampilkan di terminal jika mau
         }
         if (connection === 'close') {
             const isLoggedOut = (lastDisconnect.error = new Boom(lastDisconnect?.error))?.output?.statusCode === DisconnectReason.loggedOut;
