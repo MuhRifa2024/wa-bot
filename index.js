@@ -2,6 +2,8 @@ const { makeWASocket, DisconnectReason, useMultiFileAuthState } = require("@whis
 const { Boom } = require("@hapi/boom")
 const qrcode = require('qrcode-terminal') // install dulu: npm install qrcode-terminal
 const math = require('mathjs');
+const fs = require('fs');
+const path = require('path');
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys')
@@ -20,7 +22,14 @@ async function startBot() {
             if (!isLoggedOut) {
                 startBot();
             } else {
-                console.log('❌ Session expired/logged out. Silakan scan QR ulang.');
+                // Hapus folder auth_info_baileys jika session expired/logged out
+                const authPath = path.join(__dirname, 'auth_info_baileys');
+                if (fs.existsSync(authPath)) {
+                    fs.rmSync(authPath, { recursive: true, force: true });
+                    console.log('🗑️ Folder auth_info_baileys dihapus. Silakan scan QR ulang.');
+                }
+                // Jalankan ulang bot agar QR muncul lagi
+                startBot();
             }
         } else if (connection === 'open') {
             console.log('✅ Bot terkoneksi ke WhatsApp')
