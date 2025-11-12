@@ -1,123 +1,101 @@
-const { makeWASocket, DisconnectReason, useMultiFileAuthState } = require("@whiskeysockets/baileys")
-const { Boom } = require("@hapi/boom")
-const qrcode = require('qrcode-terminal') // install dulu: npm install qrcode-terminal
-const math = require('mathjs');
-const fs = require('fs');
-const path = require('path');
+﻿const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
 const express = require('express');
 const QRCode = require('qrcode');
+const math = require('mathjs');
 
-let latestQR = null; // Untuk menyimpan QR terbaru
+let latestQR = null;
 
-// Server web untuk menampilkan QR di browser
 const app = express();
 app.get('/', (req, res) => {
-    if (!latestQR) return res.send('QR belum tersedia');
+    console.log('Browser mengakses endpoint');
+    if (!latestQR) {
+        return res.send('<h2>QR belum tersedia</h2><p>Tunggu, lalu refresh.</p><script>setTimeout(() => location.reload(), 3000);</script>');
+    }
     QRCode.toDataURL(latestQR, (err, url) => {
         if (err) return res.send('Gagal membuat QR');
-        res.send(`<h2>Scan QR WhatsApp</h2><img src="${url}" />`);
+        res.send('<h2>Scan QR WhatsApp</h2><img src="' + url + '" style="max-width: 400px;" /><p>QR refresh otomatis</p><script>setTimeout(() => location.reload(), 20000);</script>');
     });
 });
-app.listen(3000, '0.0.0.0', () => console.log('Buka http://192.168.0.101:3000 untuk scan QR WhatsApp'));
 
-async function startBot() {
-    const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys')
-    const sock = makeWASocket({ auth: state })
+app.listen(3000, '0.0.0.0', () => {
+    console.log('Server web berjalan di http://localhost:3000');
+});
 
-    sock.ev.on('creds.update', saveCreds)
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
+});
 
-    sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect, qr } = update
-        if (qr) {
-            latestQR = qr; // Simpan QR terbaru untuk web
-            qrcode.generate(qr, { small: true }) // Tetap tampilkan di terminal jika mau
+client.on('qr', (qr) => {
+    console.log('QR CODE DITERIMA!');
+    latestQR = qr;
+    qrcode.generate(qr, { small: true });
+});
+
+client.on('ready', () => {
+    console.log('Bot terkoneksi ke WhatsApp');
+});
+
+client.on('authenticated', () => {
+    console.log('Autentikasi berhasil');
+});
+
+client.on('auth_failure', (msg) => {
+    console.error('Autentikasi gagal:', msg);
+});
+
+client.on('disconnected', (reason) => {
+    console.log('Bot terputus:', reason);
+});
+
+client.on('message', async (msg) => {
+    const sender = msg.from;
+    const pesan = msg.body;
+    
+    // Cek apakah pesan dari bot sendiri
+    if (msg.fromMe) return;
+    
+    // Cek apakah pesan dari grup (ID grup selalu berakhiran @g.us)
+    const chat = await msg.getChat();
+    if (chat.isGroup) {
+        console.log('Pesan dari grup diabaikan: ' + chat.name);
+        return;
+    }
+    
+    console.log('Pesan masuk dari ' + sender + ': ' + pesan);
+    
+    // Cek pertanyaan spesifik DULUAN (sebelum sapaan)
+    if (pesan?.toLowerCase().includes('siapa kamu') || pesan?.toLowerCase().includes('kamu siapa')) {
+        await msg.reply('I am a king of the kingdom, the bot that rules the chat!');
+    } else if (pesan?.toLowerCase().includes('apa kabar') || pesan?.toLowerCase().includes('kabar')) {
+        await msg.reply('Baik, terima kasih! Bot selalu siap membantu 🤖');
+    } else if (pesan?.toLowerCase().includes('saya ingin pesan')) {
+        await msg.reply('pesan apa? pesan cinta?');
+    } else if (pesan?.toLowerCase().includes('masa gitu aja ga ngerti') || pesan?.toLowerCase().includes('masa gitu aja gak ngerti sih?') || pesan?.toLowerCase().includes('masa ga bisa') || pesan?.toLowerCase().includes('masa gitu aja ga bisa')) {
+        await msg.reply('Ya maaf, namanya juga BOT, B O T. Yang punya keterbatasan, manusia aja belum tentu ngerti apa yang kamu maksud');
+    } else if (/^[0-9+\-*/().\s=√²xX]+$/.test(pesan)) {
+        // Matematika: preprocessing untuk simbol khusus
+        let ekspresi = pesan.replace(/=/g, '').trim();
+        ekspresi = ekspresi.replace(/x/gi, '*');
+        ekspresi = ekspresi.replace(/√(\d+)/g, 'sqrt($1)');
+        ekspresi = ekspresi.replace(/(\d+)²/g, '($1)^2');
+        
+        try {
+            const hasil = math.evaluate(ekspresi);
+            await msg.reply('Hasil: ' + hasil);
+        } catch (e) {
+            await msg.reply('Format matematika tidak dikenali.');
         }
-        if (connection === 'close') {
-            const isLoggedOut = (lastDisconnect.error = new Boom(lastDisconnect?.error))?.output?.statusCode === DisconnectReason.loggedOut;
-            console.log('❌ Terputus. Reconnect?', !isLoggedOut);
-            if (!isLoggedOut) {
-                startBot();
-            } else {
-                // Hapus folder auth_info_baileys jika session expired/logged out
-                const authPath = path.join(__dirname, 'auth_info_baileys');
-                if (fs.existsSync(authPath)) {
-                    fs.rmSync(authPath, { recursive: true, force: true });
-                    console.log('🗑️ Folder auth_info_baileys dihapus. Silakan scan QR ulang.');
-                }
-                // Jalankan ulang bot agar QR muncul lagi
-                startBot();
-            }
-        } else if (connection === 'open') {
-            console.log('✅ Bot terkoneksi ke WhatsApp')
-        }
-    })
+    } else if (pesan?.toLowerCase().includes('halo') || pesan?.toLowerCase().includes('hai') || pesan?.toLowerCase().includes('hi') || pesan?.toLowerCase() === 'p') {
+        await msg.reply('Hai juga! 👋');
+    } else {
+        await msg.reply('Maaf, saya hanya bisa menjawab sapaan dan ekspresi matematika sederhana.');
+    }
+});
 
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-        const msg = messages[0]
-        if (!msg.message || msg.key.fromMe) return
-        // tandai pesan sudah dibaca
-        await sock.readMessages([msg.key])
-        const sender = msg.key.remoteJid
-        if (!sender.endsWith('@s.whatsapp.net')) return
-        // Ambil isi pesan dari berbagai tipe pesan teks
-        let pesan =
-            msg.message?.conversation ||
-            msg.message?.extendedTextMessage?.text ||
-            msg.message?.imageMessage?.caption ||
-            msg.message?.videoMessage?.caption ||
-            msg.message?.documentMessage?.caption ||
-            msg.message?.buttonsResponseMessage?.selectedButtonId ||
-            msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
-            msg.message?.templateButtonReplyMessage?.selectedId ||
-            ""
-
-        console.log(`📩 Pesan masuk dari ${sender}: ${pesan}`)
-
-        // Logika penanganan pesan:
-
-        // 1. Prioritaskan sapaan dan perintah spesifik terlebih dahulu
-        if (pesan?.toLowerCase().includes("halo")) {
-            console.log("Bot akan membalas pesan halo...")
-            await sock.sendMessage(sender, { text: "Hai juga 👋" })
-        } else if (pesan?.toLowerCase().includes("siapa kamu")) {
-            await sock.sendMessage(sender, { text: "I'm a king of the kingdom, the bot that rules the chat! 👑" })
-        } else if (pesan?.toLowerCase().includes("saya ingin pesan")) {
-            await sock.sendMessage(sender, { text: "pesan apa? pesan cinta?" })
-        } else if (
-            pesan?.toLowerCase().includes("masa gitu aja ga ngerti") ||
-            pesan?.toLowerCase().includes("masa gitu aja gak ngerti sih?") ||
-            pesan?.toLowerCase().includes("masa ga bisa") ||
-            pesan?.toLowerCase().includes("masa gitu aja ga bisa")
-        ) {
-            await sock.sendMessage(sender, { text: "Ya maaf, namanya juga BOT, B O T. Yang punya keterbatasan, manusia aja belum tentu ngerti apa yang kamu maksud 🙄" })
-        }
-        // 2. Kemudian, coba sebagai ekspresi matematika
-        // Gunakan regex yang *hanya* mengizinkan angka dan operator matematika dasar,
-        // tanpa huruf, agar "halo" tidak masuk ke sini.
-        else if (/^[0-9+\-*/().\s=√²]+$/.test(pesan)) { // Regex ini HANYA angka dan operator
-            let ekspresi = pesan
-                .replace(/=/g, '') // Hilangkan tanda '='
-                .replace(/√([0-9]+)/g, 'sqrt($1)') // Ganti '√25' jadi 'sqrt(25)'
-                .replace(/([0-9]+)²/g, '$1^2'); // Ganti '25²' jadi '25^2'
-            try {
-                const hasil = math.evaluate(ekspresi);
-                await sock.sendMessage(sender, { text: `Hasil: ${hasil}` });
-            } catch (e) {
-                // Ini akan menangkap error jika ekspresi numerik tidak valid (misal: "2++3")
-                await sock.sendMessage(sender, { text: "Format matematika tidak dikenali." });
-            }
-        }
-        // 3. Terakhir, jika tidak cocok dengan semua di atas, berikan pesan default
-        else {
-            // Kita tambahkan pengecekan tambahan untuk variabel matematika (misal: "12x*2")
-            // Ini akan memastikan pesan seperti "12x*2" tetap menghasilkan "Format matematika tidak dikenali."
-            if (/[a-zA-Z]/.test(pesan) && /^[0-9+\-*/().\s=√²a-zA-Z]+$/.test(pesan)) {
-                await sock.sendMessage(sender, { text: "Format matematika tidak dikenali." });
-            } else {
-                await sock.sendMessage(sender, { text: "Maaf, saya hanya bisa menjawab sapaan, dan ekspresi matematika sederhana." });
-            }
-        }
-    })
-}
-
-startBot()
+console.log('Memulai WhatsApp Bot...');
+client.initialize();

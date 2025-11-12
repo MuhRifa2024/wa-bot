@@ -1,165 +1,206 @@
-# WA Bot - WhatsApp Bot with Google Cloud Functions
+# 🤖 WhatsApp Bot
 
-Bot WhatsApp sederhana yang dapat menjawab sapaan dan melakukan perhitungan matematika. Bot ini dapat di-deploy ke Google Cloud Functions menggunakan CI/CD GitHub Actions.
+Bot WhatsApp sederhana yang dapat menjawab sapaan dan melakukan perhitungan matematika menggunakan **whatsapp-web.js**.
 
-## Fitur
+## ✨ Fitur
 
 - 🤖 Bot WhatsApp otomatis
-- 🧮 Kalkulator matematika sederhana
-- 👋 Respons sapaan
-- 📱 QR Code untuk autentikasi
-- ☁️ Deploy ke Google Cloud Functions
-- 🔄 CI/CD dengan GitHub Actions
+- 🧮 Kalkulator matematika (mendukung +, -, *, /, √, ², x)
+- 👋 Respons sapaan otomatis
+- 📱 QR Code dinamis (terminal & browser)
+- 🌐 Web server untuk scan QR
+- 💾 Session tersimpan otomatis (tidak perlu scan QR berulang)
 
-## Setup Lokal
-
-1. Clone repository:
-
-```bash
-git clone <your-repo-url>
-cd wa-bot
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Jalankan bot:
-
-```bash
-npm start
-```
-
-4. Buka browser dan scan QR code di `http://localhost:3000`
-
-## Deploy ke Google Cloud Functions
+## 🚀 Quick Start
 
 ### Prerequisites
 
-1. **Google Cloud Project** dengan Cloud Functions API aktif
-2. **Service Account** dengan permission:
-   - Cloud Functions Developer
-   - Service Account User
-   - Cloud Build Editor
+- [Node.js](https://nodejs.org/) v16+ 
+- npm atau yarn
+- Koneksi internet stabil
 
-### Setup GitHub Secrets
+### Installation
 
-Tambahkan secrets berikut di repository GitHub:
-
-1. `GCP_PROJECT_ID`: ID project Google Cloud
-2. `GCP_SA_KEY`: Service Account key (JSON format)
-
-### Cara Mendapatkan Service Account Key
-
-1. Buka [Google Cloud Console](https://console.cloud.google.com/)
-2. Pilih project Anda
-3. Buka **IAM & Admin** > **Service Accounts**
-4. Buat service account baru atau gunakan yang ada
-5. Tambahkan role: **Cloud Functions Developer**
-6. Buat key baru (JSON format)
-7. Copy isi JSON ke GitHub secret `GCP_SA_KEY`
-
-### Deploy Otomatis
-
-Setelah setup secrets, setiap push ke branch `main` atau `master` akan otomatis deploy ke Cloud Functions.
-
-### Deploy Manual
-
-```bash
-npm run deploy
-```
-
-## API Endpoints
-
-Setelah deploy, bot akan tersedia di endpoint berikut:
-
-- `GET /` - Info API dan status bot
-- `GET /health` - Health check
-- `GET /qr` - Dapatkan QR code untuk scan
-- `POST /start` - Mulai bot
-- `POST /stop` - Hentikan bot
-
-## Penggunaan
-
-1. **Mulai Bot**:
-
+1. **Clone repository:**
    ```bash
-   curl -X POST https://your-function-url/start
+   git clone https://github.com/MuhRifa2024/wa-bot.git
+   cd wa-bot
    ```
 
-2. **Dapatkan QR Code**:
-
+2. **Install dependencies:**
    ```bash
-   curl https://your-function-url/qr
+   npm install
    ```
 
-3. **Cek Status**:
-
+3. **Jalankan bot:**
    ```bash
-   curl https://your-function-url/health
+   node index.js
    ```
 
-4. **Hentikan Bot**:
-   ```bash
-   curl -X POST https://your-function-url/stop
-   ```
+4. **Scan QR Code:**
+   - **Di Terminal:** QR muncul otomatis (ASCII art)
+   - **Di Browser:** Buka `http://localhost:3000`
 
-## Komunikasi Bot
+5. **Bot siap digunakan!** 🎉
+
+## 📱 Cara Menggunakan
+
+### Scan QR Code
+
+1. Jalankan bot dengan `node index.js`
+2. Buka WhatsApp di HP Anda
+3. Tap menu ⋮ → **Linked Devices** → **Link a Device**
+4. Scan QR code yang muncul di terminal atau browser
+5. Bot akan otomatis terkoneksi
+
+### Perintah Bot
 
 Bot akan merespons pesan berikut:
 
-- **Sapaan**: "halo" → "Hai juga 👋"
-- **Matematika**: "2+2" → "Hasil: 4"
-- **Pertanyaan**: "siapa kamu" → "I'm a king of the kingdom..."
+| Pesan | Respons |
+|-------|---------|
+| `halo`, `hai`, `hi`, `p` | `Hai juga` |
+| `siapa kamu` | `I am a king of the kingdom, the bot that rules the chat!` |
+| `saya ingin pesan` | `pesan apa? pesan cinta?` |
+| `12+12` | `Hasil: 24` |
+| `√25` | `Hasil: 5` |
+| `5²+3²` | `Hasil: 34` |
+| `12x2` | `Hasil: 24` |
 
-## Troubleshooting
+## 🔧 Konfigurasi
 
-### Bot tidak merespons
+### Port Server (Optional)
 
-1. Cek status bot di `/health`
-2. Pastikan bot sudah dimulai dengan `/start`
-3. Scan QR code jika belum terautentikasi
+Jika ingin mengubah port server web (default: 3000), edit `index.js`:
 
-### Deploy gagal
+```javascript
+app.listen(3000, '0.0.0.0', () => {
+    console.log('Server web berjalan di http://localhost:3000');
+});
+```
 
-1. Pastikan secrets GitHub sudah benar
-2. Cek permission service account
-3. Pastikan Cloud Functions API aktif
+### Headless Browser (Optional)
+
+Jika ingin melihat browser Puppeteer (untuk debug), ubah `headless: true` menjadi `headless: false`:
+
+```javascript
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        headless: false,  // Browser akan terlihat
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
+});
+```
+
+## 🛠️ Troubleshooting
 
 ### QR Code tidak muncul
 
-1. Hentikan bot dengan `/stop`
-2. Mulai ulang dengan `/start`
-3. Cek endpoint `/qr`
+1. Pastikan port 3000 tidak digunakan aplikasi lain
+2. Nonaktifkan firewall/antivirus sementara
+3. Coba gunakan hotspot HP sebagai koneksi internet
+4. Tunggu 1-3 menit untuk Puppeteer selesai launch
 
-## Struktur File
+### Bot terputus terus
+
+1. Pastikan koneksi internet stabil
+2. Jangan login WhatsApp Web di device lain dengan nomor yang sama
+3. Jangan spam reconnect (tunggu beberapa menit antar percobaan)
+
+### Session expired
+
+1. Hapus folder `.wwebjs_auth`:
+   ```bash
+   rm -rf .wwebjs_auth
+   ```
+2. Jalankan ulang bot dan scan QR lagi
+
+### Bot tidak membalas pesan
+
+1. Pastikan bot sudah menampilkan "Bot terkoneksi ke WhatsApp"
+2. Cek log terminal untuk error
+3. Pastikan pesan tidak dari grup (bot hanya membalas chat pribadi)
+
+## 📁 Struktur File
 
 ```
 wa-bot/
-├── .github/workflows/deploy.yml  # CI/CD workflow
-├── main.js                       # Entry point Cloud Functions
-├── index.js                      # Local development
-├── package.json                  # Dependencies
-├── .gcloudignore                 # Files to exclude from deploy
-└── README.md                     # Documentation
+├── index.js              # Main bot file (whatsapp-web.js)
+├── index.baileys.js      # Backup (Baileys version)
+├── package.json          # Dependencies
+├── .gitignore            # Files to ignore
+├── README.md             # This file
+├── SECURITY.md           # Security guidelines
+├── .wwebjs_auth/         # Session data (JANGAN PUSH!)
+└── node_modules/         # Dependencies (JANGAN PUSH!)
 ```
 
-## Environment Variables
+## 🔒 Keamanan
 
-- `NODE_ENV`: Environment (production/development)
-- `GCP_PROJECT_ID`: Google Cloud Project ID
-- `GCP_SA_KEY`: Service Account Key
+**PENTING:** Jangan push file/folder berikut ke GitHub:
+- `.wwebjs_auth/` - Berisi session WhatsApp Anda
+- `.wwebjs_cache/` - Cache browser
+- `.env` - Environment variables (jika ada)
 
-## Contributing
+Baca [`SECURITY.md`](SECURITY.md) untuk panduan lengkap.
+
+## 🚀 Deploy ke Server/VPS
+
+### Menggunakan PM2 (Recommended)
+
+1. **Install PM2:**
+   ```bash
+   npm install -g pm2
+   ```
+
+2. **Jalankan bot dengan PM2:**
+   ```bash
+   pm2 start index.js --name wa-bot
+   ```
+
+3. **Auto-start saat server reboot:**
+   ```bash
+   pm2 startup
+   pm2 save
+   ```
+
+4. **Monitoring:**
+   ```bash
+   pm2 list
+   pm2 logs wa-bot
+   pm2 monit
+   ```
+
+### Deploy ke Railway/Render (Free)
+
+1. Push code ke GitHub
+2. Hubungkan repository ke Railway/Render
+3. Deploy otomatis akan berjalan
+4. Akses web server untuk scan QR
+
+**Catatan:** Beberapa platform free tier mungkin suspend app jika tidak ada aktivitas.
+
+## 🤝 Contributing
 
 1. Fork repository
-2. Buat feature branch
-3. Commit changes
-4. Push ke branch
+2. Buat feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
 5. Buat Pull Request
 
-## License
+## 📝 License
 
 ISC
+
+## 👤 Author
+
+**MuhRifa2024**
+
+- GitHub: [@MuhRifa2024](https://github.com/MuhRifa2024)
+
+## 🙏 Credits
+
+- [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) - WhatsApp Web API
+- [mathjs](https://mathjs.org/) - Math library
+- [qrcode-terminal](https://github.com/gtanner/qrcode-terminal) - QR code generator
