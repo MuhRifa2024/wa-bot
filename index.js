@@ -26,7 +26,15 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
     }
 });
 
@@ -53,47 +61,94 @@ client.on('disconnected', (reason) => {
 });
 
 client.on('message', async (msg) => {
-    const sender = msg.from;
-    const pesan = msg.body;
-    
-    // Cek apakah pesan dari bot sendiri
-    if (msg.fromMe) return;
-    
-    // Cek apakah pesan dari grup (ID grup selalu berakhiran @g.us)
-    const chat = await msg.getChat();
-    if (chat.isGroup) {
-        console.log('Pesan dari grup diabaikan: ' + chat.name);
-        return;
-    }
-    
-    console.log('Pesan masuk dari ' + sender + ': ' + pesan);
-    
-    // Cek pertanyaan spesifik DULUAN (sebelum sapaan)
-    if (pesan?.toLowerCase().includes('siapa kamu') || pesan?.toLowerCase().includes('kamu siapa')) {
-        await msg.reply('I am a king of the kingdom, the bot that rules the chat!');
-    } else if (pesan?.toLowerCase().includes('apa kabar') || pesan?.toLowerCase().includes('kabar')) {
-        await msg.reply('Baik, terima kasih! Bot selalu siap membantu 🤖');
-    } else if (pesan?.toLowerCase().includes('saya ingin pesan')) {
-        await msg.reply('pesan apa? pesan cinta?');
-    } else if (pesan?.toLowerCase().includes('masa gitu aja ga ngerti') || pesan?.toLowerCase().includes('masa gitu aja gak ngerti sih?') || pesan?.toLowerCase().includes('masa ga bisa') || pesan?.toLowerCase().includes('masa gitu aja ga bisa')) {
-        await msg.reply('Ya maaf, namanya juga BOT, B O T. Yang punya keterbatasan, manusia aja belum tentu ngerti apa yang kamu maksud');
-    } else if (/^[0-9+\-*/().\s=√²xX]+$/.test(pesan)) {
-        // Matematika: preprocessing untuk simbol khusus
-        let ekspresi = pesan.replace(/=/g, '').trim();
-        ekspresi = ekspresi.replace(/x/gi, '*');
-        ekspresi = ekspresi.replace(/√(\d+)/g, 'sqrt($1)');
-        ekspresi = ekspresi.replace(/(\d+)²/g, '($1)^2');
+    try {
+        // Cek apakah pesan dari bot sendiri
+        if (msg.fromMe) return;
         
-        try {
-            const hasil = math.evaluate(ekspresi);
-            await msg.reply('Hasil: ' + hasil);
-        } catch (e) {
-            await msg.reply('Format matematika tidak dikenali.');
+        // Cek grup lebih cepat: cek format ID (grup = @g.us, personal = @c.us)
+        if (msg.from.endsWith('@g.us')) {
+            console.log('Pesan dari grup diabaikan');
+            return;
         }
-    } else if (pesan?.toLowerCase().includes('halo') || pesan?.toLowerCase().includes('hai') || pesan?.toLowerCase().includes('hi') || pesan?.toLowerCase() === 'p') {
-        await msg.reply('Hai juga! 👋');
-    } else {
-        await msg.reply('Maaf, saya hanya bisa menjawab sapaan dan ekspresi matematika sederhana.');
+        
+        const sender = msg.from;
+        const pesan = msg.body;
+        const pesanLower = pesan?.toLowerCase() || '';
+        
+        console.log('📩 ' + sender + ': ' + pesan);
+        
+        // ========================================
+        // HANYA MERESPONS TRIGGER SPESIFIK
+        // ========================================
+        
+        // 1. Command: /help atau /menu
+        if (pesanLower === '/help' || pesanLower === '/menu') {
+            msg.reply(
+                '🤖 *Bot Commands:*\n\n' +
+                '• /help atau /menu - Tampilkan menu ini\n' +
+                '• /hitung <angka> - Kalkulator matematika\n' +
+                '• /info - Informasi bot\n\n' +
+                'Contoh: /hitung 15+25*2'
+            );
+            return;
+        }
+        
+        // 2. Command: /info
+        if (pesanLower === '/info') {
+            msg.reply('🤖 Saya adalah WhatsApp Bot.\nKetik /help untuk melihat perintah.');
+            return;
+        }
+        
+        // 3. Command: /hitung <ekspresi>
+        const hitungMatch = pesan?.match(/^\/hitung\s+(.+)$/i);
+        if (hitungMatch) {
+            let ekspresi = hitungMatch[1].replace(/=/g, '').trim();
+            ekspresi = ekspresi.replace(/x/gi, '*');
+            ekspresi = ekspresi.replace(/√(\d+)/g, 'sqrt($1)');
+            ekspresi = ekspresi.replace(/(\d+)²/g, '($1)^2');
+            
+            try {
+                const hasil = math.evaluate(ekspresi);
+                msg.reply('📊 Hasil: ' + hasil);
+            } catch (e) {
+                msg.reply('❌ Format matematika tidak valid.');
+            }
+            return;
+        }
+        
+        // 4. Deteksi ekspresi matematika murni
+        if (/^[0-9+\-*/().\s=√²xX]+$/.test(pesan)) {
+            let ekspresi = pesan.replace(/=/g, '').trim();
+            ekspresi = ekspresi.replace(/x/gi, '*');
+            ekspresi = ekspresi.replace(/√(\d+)/g, 'sqrt($1)');
+            ekspresi = ekspresi.replace(/(\d+)²/g, '($1)^2');
+            
+            try {
+                const hasil = math.evaluate(ekspresi);
+                msg.reply('📊 Hasil: ' + hasil);
+            } catch (e) {
+                // Diam saja jika gagal parse
+            }
+            return;
+        }
+        
+        // 5. Keyword: "siapa kamu"
+        if (pesanLower.includes('siapa kamu') || pesanLower.includes('kamu siapa')) {
+            msg.reply('🤖 Saya bot WhatsApp. Ketik /help untuk info.');
+            return;
+        }
+        
+        // 6. Keyword: "apa kabar"
+        if (pesanLower.includes('apa kabar')) {
+            msg.reply('Baik! 👍');
+            return;
+        }
+        
+        // Pesan lain: bot diam
+        console.log('⚠️ Tidak ada trigger yang cocok');
+        
+    } catch (error) {
+        console.error('❌ Error handling message:', error);
     }
 });
 
