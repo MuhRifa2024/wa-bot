@@ -39,18 +39,67 @@ let latestQR = null;
 
 const app = express();
 app.get('/', (req, res) => {
-    console.log('Browser mengakses endpoint');
-    if (!latestQR) {
-        return res.send('<h2>QR belum tersedia</h2><p>Tunggu, lalu refresh.</p><script>setTimeout(() => location.reload(), 3000);</script>');
-    }
-    QRCode.toDataURL(latestQR, (err, url) => {
-        if (err) return res.send('Gagal membuat QR');
-        res.send('<h2>Scan QR WhatsApp</h2><img src="' + url + '" style="max-width: 400px;" /><p>QR refresh otomatis</p><script>setTimeout(() => location.reload(), 20000);</script>');
-    });
+        // Serve a lightweight page that subscribes to server-sent events (SSE)
+        // Browser will open a single persistent connection and only update when server pushes a new QR
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(`
+                <html>
+                <head><title>WhatsApp QR</title></head>
+                <body>
+                    <h2>Scan QR WhatsApp</h2>
+                    <div id="status">Menunggu QR...</div>
+                    <img id="qr" style="max-width:400px; display:block; margin-top:8px;" />
+                    <script>
+                        const status = document.getElementById('status');
+                        const img = document.getElementById('qr');
+                        const ev = new EventSource('/events');
+                        ev.onopen = () => { status.innerText = 'Terhubung, menunggu QR...'; };
+                        ev.onmessage = (e) => {
+                            try {
+                                const data = e.data;
+                                if (!data) return;
+                                img.src = data;
+                                status.innerText = 'QR diterima. Scan dengan WhatsApp.';
+                            } catch (err) {
+                                console.error('Failed to parse SSE data', err);
+                            }
+                        };
+                        ev.onerror = (err) => { status.innerText = 'Koneksi terputus. Coba refresh halaman.'; };
+                    </script>
+                </body>
+                </html>
+        `);
 });
 
-app.listen(3000, '0.0.0.0', () => {
-    console.log('Server web berjalan di http://localhost:3000');
+// Server-Sent Events: maintain connected clients and push QR updates only when available
+const sseClients = [];
+app.get('/events', (req, res) => {
+        // Set SSE headers
+        res.writeHead(200, {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive'
+        });
+        res.write('\n');
+        // Add to clients
+        sseClients.push(res);
+
+        // If we already have a QR, send it immediately
+        if (latestQR) {
+                QRCode.toDataURL(latestQR, (err, url) => {
+                        if (!err && url) res.write(`data: ${url}\n\n`);
+                });
+        }
+
+        // Remove client on close
+        req.on('close', () => {
+                const idx = sseClients.indexOf(res);
+                if (idx !== -1) sseClients.splice(idx, 1);
+        });
+});
+
+app.listen(5000, '0.0.0.0', () => {
+    console.log('Server web berjalan di http://localhost:5000');
 });
 
 const client = new Client({
@@ -73,6 +122,22 @@ client.on('qr', (qr) => {
     console.log('QR CODE DITERIMA!');
     latestQR = qr;
     qrcode.generate(qr, { small: true });
+
+    // Convert QR text to data URL image and push to SSE clients
+    QRCode.toDataURL(qr, (err, url) => {
+        if (err) {
+            console.error('Gagal membuat dataURL untuk QR:', err);
+            return;
+        }
+        // Broadcast to all connected SSE clients
+        for (const res of sseClients) {
+            try {
+                res.write(`data: ${url}\n\n`);
+            } catch (e) {
+                // ignore write errors; client cleanup will remove closed connections
+            }
+        }
+    });
 });
 
 client.on('ready', () => {

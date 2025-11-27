@@ -5,7 +5,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "node index.js"
+    "dev": "node index.js",
+    "pm2-start": "pm2 start ecosystem.config.js --env production",
+    "pm2-stop": "pm2 stop wa-bot || true",
+    "pm2-restart": "pm2 restart wa-bot || true",
+    "pm2-save": "pm2 save",
+    "stop": "pm2 stop wa-bot && pm2 delete wa-bot"
   },
   "keywords": [],
   "author": "",
