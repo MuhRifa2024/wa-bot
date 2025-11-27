@@ -3,6 +3,37 @@ const qrcode = require('qrcode-terminal');
 const express = require('express');
 const QRCode = require('qrcode');
 const math = require('mathjs');
+const fs = require('fs');
+const path = require('path');
+
+// Load dynamic triggers
+const triggersPath = path.join(__dirname, 'triggers.json');
+let triggers = { commands: [], keywords: [], patterns: [] };
+
+function loadTriggers() {
+    try {
+        const data = fs.readFileSync(triggersPath, 'utf8');
+        triggers = JSON.parse(data);
+        console.log('✅ Triggers loaded:', {
+            commands: triggers.commands?.length || 0,
+            keywords: triggers.keywords?.length || 0,
+            patterns: triggers.patterns?.length || 0
+        });
+    } catch (error) {
+        console.error('❌ Error loading triggers:', error.message);
+    }
+}
+
+// Load triggers on startup
+loadTriggers();
+
+// Watch for trigger file changes (hot reload)
+fs.watch(triggersPath, (eventType) => {
+    if (eventType === 'change') {
+        console.log('🔄 Triggers file changed, reloading...');
+        loadTriggers();
+    }
+});
 
 let latestQR = null;
 
@@ -65,7 +96,7 @@ client.on('message', async (msg) => {
         // Cek apakah pesan dari bot sendiri
         if (msg.fromMe) return;
         
-        // Cek grup lebih cepat: cek format ID (grup = @g.us, personal = @c.us)
+        // Cek grup lebih cepat: cek format ID
         if (msg.from.endsWith('@g.us')) {
             console.log('Pesan dari grup diabaikan');
             return;
@@ -78,70 +109,67 @@ client.on('message', async (msg) => {
         console.log('📩 ' + sender + ': ' + pesan);
         
         // ========================================
-        // HANYA MERESPONS TRIGGER SPESIFIK
+        // DYNAMIC TRIGGER SYSTEM
         // ========================================
         
-        // 1. Command: /help atau /menu
-        if (pesanLower === '/help' || pesanLower === '/menu') {
-            msg.reply(
-                '🤖 *Bot Commands:*\n\n' +
-                '• /help atau /menu - Tampilkan menu ini\n' +
-                '• /hitung <angka> - Kalkulator matematika\n' +
-                '• /info - Informasi bot\n\n' +
-                'Contoh: /hitung 15+25*2'
-            );
-            return;
-        }
-        
-        // 2. Command: /info
-        if (pesanLower === '/info') {
-            msg.reply('🤖 Saya adalah WhatsApp Bot.\nKetik /help untuk melihat perintah.');
-            return;
-        }
-        
-        // 3. Command: /hitung <ekspresi>
-        const hitungMatch = pesan?.match(/^\/hitung\s+(.+)$/i);
-        if (hitungMatch) {
-            let ekspresi = hitungMatch[1].replace(/=/g, '').trim();
-            ekspresi = ekspresi.replace(/x/gi, '*');
-            ekspresi = ekspresi.replace(/√(\d+)/g, 'sqrt($1)');
-            ekspresi = ekspresi.replace(/(\d+)²/g, '($1)^2');
-            
-            try {
-                const hasil = math.evaluate(ekspresi);
-                msg.reply('📊 Hasil: ' + hasil);
-            } catch (e) {
-                msg.reply('❌ Format matematika tidak valid.');
+        // 1. Check exact commands (case-insensitive)
+        for (const cmd of triggers.commands || []) {
+            if (cmd.trigger.some(t => pesanLower === t.toLowerCase())) {
+                let response = cmd.response;
+                
+                // Handle dynamic responses
+                if (response === 'dynamic:time') {
+                    const now = new Date();
+                    response = `⏰ Waktu sekarang:\n${now.toLocaleString('id-ID', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })}`;
+                }
+                
+                msg.reply(response);
+                return;
             }
-            return;
         }
         
-        // 4. Deteksi ekspresi matematika murni
-        if (/^[0-9+\-*/().\s=√²xX]+$/.test(pesan)) {
-            let ekspresi = pesan.replace(/=/g, '').trim();
-            ekspresi = ekspresi.replace(/x/gi, '*');
-            ekspresi = ekspresi.replace(/√(\d+)/g, 'sqrt($1)');
-            ekspresi = ekspresi.replace(/(\d+)²/g, '($1)^2');
-            
-            try {
-                const hasil = math.evaluate(ekspresi);
-                msg.reply('📊 Hasil: ' + hasil);
-            } catch (e) {
-                // Diam saja jika gagal parse
+        // 2. Check keywords (contains match)
+        for (const kw of triggers.keywords || []) {
+            if (kw.trigger.some(t => pesanLower.includes(t.toLowerCase()))) {
+                msg.reply(kw.response);
+                return;
             }
-            return;
         }
         
-        // 5. Keyword: "siapa kamu"
-        if (pesanLower.includes('siapa kamu') || pesanLower.includes('kamu siapa')) {
-            msg.reply('🤖 Saya bot WhatsApp. Ketik /help untuk info.');
-            return;
-        }
-        
-        // 6. Keyword: "apa kabar"
-        if (pesanLower.includes('apa kabar')) {
-            msg.reply('Baik! 👍');
-            return;
+        // 3. Check patterns (regex + handlers)
+        for (const pattern of triggers.patterns || []) {
+            const regex = new RegExp(pattern.trigger, 'i');
+            const match = pesan?.match(regex);
+            
+            if (match) {
+                // Handle calculator
+                if (pattern.handler === 'calculate') {
+                    let ekspresi = match[1] || pesan;
+                    ekspresi = ekspresi.replace(/=/g, '').trim();
+                    ekspresi = ekspresi.replace(/x/gi, '*');
+                    ekspresi = ekspresi.replace(/√(\d+)/g, 'sqrt($1)');
+                    ekspresi = ekspresi.replace(/(\d+)²/g, '($1)^2');
+                    
+                    try {
+                        const hasil = math.evaluate(ekspresi);
+                        msg.reply('📊 Hasil: ' + hasil);
+                    } catch (e) {
+                        // Silent fail untuk ekspresi matematika yang tidak valid
+                        if (match[1]) {
+                            msg.reply('❌ Format matematika tidak valid.');
+                        }
+                    }
+                }
+                return;
+            }
         }
         
         // Pesan lain: bot diam
