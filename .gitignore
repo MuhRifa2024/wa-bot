@@ -10,11 +10,17 @@ node_modules/
 .env.local
 .env.production
 
+# Data files (optional - uncomment if you want to gitignore)
+# data/products.json
+# data/orders.json
+# data/customers.json
+
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
 
 # OS files
 .DS_Store

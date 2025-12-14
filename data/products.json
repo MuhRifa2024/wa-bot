@@ -1,0 +1,103 @@
+[
+  {
+    "id": "PROD-001",
+    "sku": "TSH001",
+    "name": "Kaos Polos Premium",
+    "description": "Kaos polos berbahan cotton combed 30s, nyaman dipakai sehari-hari",
+    "price": 75000,
+    "stock": 50,
+    "category": "Pakaian",
+    "images": [],
+    "variants": [
+      {
+        "name": "Ukuran",
+        "options": ["S", "M", "L", "XL", "XXL"]
+      },
+      {
+        "name": "Warna",
+        "options": ["Hitam", "Putih", "Abu-abu", "Navy"]
+      }
+    ],
+    "isAvailable": true
+  },
+  {
+    "id": "PROD-002",
+    "sku": "JAC001",
+    "name": "Jaket Hoodie",
+    "description": "Jaket hoodie fleece tebal, cocok untuk cuaca dingin",
+    "price": 150000,
+    "stock": 30,
+    "category": "Pakaian",
+    "images": [],
+    "variants": [
+      {
+        "name": "Ukuran",
+        "options": ["M", "L", "XL", "XXL"]
+      },
+      {
+        "name": "Warna",
+        "options": ["Hitam", "Abu-abu", "Maroon"]
+      }
+    ],
+    "isAvailable": true
+  },
+  {
+    "id": "PROD-003",
+    "sku": "CEL001",
+    "name": "Celana Jeans",
+    "description": "Celana jeans premium stretch, comfortable fit",
+    "price": 200000,
+    "stock": 25,
+    "category": "Pakaian",
+    "images": [],
+    "variants": [
+      {
+        "name": "Ukuran",
+        "options": ["28", "29", "30", "31", "32", "33", "34"]
+      },
+      {
+        "name": "Warna",
+        "options": ["Biru", "Hitam"]
+      }
+    ],
+    "isAvailable": true
+  },
+  {
+    "id": "PROD-004",
+    "sku": "BAG001",
+    "name": "Tas Ransel",
+    "description": "Tas ransel laptop 15 inch, banyak kantong, anti air",
+    "price": 250000,
+    "stock": 20,
+    "category": "Aksesoris",
+    "images": [],
+    "variants": [
+      {
+        "name": "Warna",
+        "options": ["Hitam", "Abu-abu", "Navy"]
+      }
+    ],
+    "isAvailable": true
+  },
+  {
+    "id": "PROD-005",
+    "sku": "SHP001",
+    "name": "Sepatu Sneakers",
+    "description": "Sepatu sneakers casual, ringan dan nyaman",
+    "price": 300000,
+    "stock": 15,
+    "category": "Sepatu",
+    "images": [],
+    "variants": [
+      {
+        "name": "Ukuran",
+        "options": ["38", "39", "40", "41", "42", "43", "44"]
+      },
+      {
+        "name": "Warna",
+        "options": ["Hitam", "Putih", "Navy"]
+      }
+    ],
+    "isAvailable": true
+  }
+]

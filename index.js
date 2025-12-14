@@ -6,6 +6,25 @@ const math = require('mathjs');
 const fs = require('fs');
 const path = require('path');
 
+// Import E-commerce modules
+const ProductService = require('./lib/services/ProductService');
+const OrderService = require('./lib/services/OrderService');
+const CustomerService = require('./lib/services/CustomerService');
+const ChatService = require('./lib/services/ChatService');
+const EcommerceHandlers = require('./lib/handlers/EcommerceHandlers');
+const WebhookHandler = require('./lib/utils/WebhookHandler');
+const MessageParser = require('./lib/utils/MessageParser');
+
+// Initialize services
+const productService = new ProductService();
+const orderService = new OrderService();
+const customerService = new CustomerService();
+const chatService = new ChatService();
+
+// Initialize handlers
+const ecommerceHandlers = new EcommerceHandlers(productService, orderService, customerService);
+const webhookHandler = new WebhookHandler(productService, orderService, customerService, chatService);
+
 // Load dynamic triggers
 const triggersPath = path.join(__dirname, 'triggers.json');
 let triggers = { commands: [], keywords: [], patterns: [] };
@@ -35,9 +54,28 @@ fs.watch(triggersPath, (eventType) => {
     }
 });
 
+// Initialize all services
+async function initializeServices() {
+    console.log('🔄 Initializing services...');
+    await productService.initialize();
+    await orderService.initialize();
+    await customerService.initialize();
+    await chatService.initialize();
+    console.log('✅ All services initialized');
+}
+
 let latestQR = null;
+let whatsappClient = null; // Store client reference for notifications
 
 const app = express();
+
+// Middleware for JSON parsing
+app.use(express.json());
+
+// Setup webhook and API routes
+webhookHandler.setupRoutes(app);
+webhookHandler.setupAPI(app);
+
 app.get('/', (req, res) => {
         // Serve a lightweight page that subscribes to server-sent events (SSE)
         // Browser will open a single persistent connection and only update when server pushes a new QR
@@ -142,6 +180,10 @@ client.on('qr', (qr) => {
 
 client.on('ready', () => {
     console.log('Bot terkoneksi ke WhatsApp');
+    whatsappClient = client; // Store reference
+    
+    // Start notification sender
+    startNotificationSender();
 });
 
 client.on('authenticated', () => {
@@ -173,9 +215,149 @@ client.on('message', async (msg) => {
         
         console.log('📩 ' + sender + ': ' + pesan);
         
+        // Save incoming message to chat history
+        await chatService.addMessage(sender, pesan, 'incoming', {
+            messageId: msg.id.id,
+            timestamp: msg.timestamp
+        });
+        
         // ========================================
-        // DYNAMIC TRIGGER SYSTEM
+        // E-COMMERCE COMMAND ROUTING
         // ========================================
+        
+        // Check if customer is in checkout flow
+        const session = ecommerceHandlers.getSession(sender);
+        if (session.state !== 'idle') {
+            const handled = await ecommerceHandlers.handleCheckoutFlow(msg, pesan);
+            if (handled) return;
+        }
+        
+        // Parse command
+        const parsed = MessageParser.parseCommand(pesan);
+        
+        if (parsed) {
+            const { command, args } = parsed;
+            
+            // Route to appropriate handler
+            switch (command) {
+                case 'KATALOG':
+                case 'CATALOG':
+                    await ecommerceHandlers.handleCatalog(msg, args);
+                    return;
+                
+                case 'KATEGORI':
+                case 'CATEGORY':
+                    if (args.length > 0) {
+                        await ecommerceHandlers.handleCatalog(msg, args);
+                    } else {
+                        await ecommerceHandlers.handleCategories(msg);
+                    }
+                    return;
+                
+                case 'PRODUK':
+                case 'PRODUCT':
+                    if (args.length > 0) {
+                        await ecommerceHandlers.handleProductDetail(msg, args[0]);
+                    } else {
+                        await msg.reply('💬 Ketik *PRODUK <kode>* untuk melihat detail produk\nContoh: PRODUK TSH001');
+                    }
+                    return;
+                
+                case 'CARI':
+                case 'SEARCH':
+                    if (args.length > 0) {
+                        await ecommerceHandlers.handleSearch(msg, args.join(' '));
+                    } else {
+                        await msg.reply('💬 Ketik *CARI <kata kunci>* untuk mencari produk\nContoh: CARI kaos');
+                    }
+                    return;
+                
+                case 'BELI':
+                case 'BUY':
+                    if (args.length > 0) {
+                        const buyData = MessageParser.parseBuyCommand(args);
+                        await ecommerceHandlers.handleAddToCart(msg, buyData.sku, buyData.quantity);
+                    } else {
+                        await msg.reply('💬 Ketik *BELI <kode> <jumlah>* untuk menambah ke keranjang\nContoh: BELI TSH001 2');
+                    }
+                    return;
+                
+                case 'KERANJANG':
+                case 'CART':
+                    await ecommerceHandlers.handleViewCart(msg);
+                    return;
+                
+                case 'HAPUS':
+                case 'REMOVE':
+                case 'DELETE':
+                    if (args.length > 0) {
+                        await ecommerceHandlers.handleRemoveFromCart(msg, args[0]);
+                    } else {
+                        await msg.reply('💬 Ketik *HAPUS <nomor>* untuk menghapus item dari keranjang\nContoh: HAPUS 1');
+                    }
+                    return;
+                
+                case 'KOSONGKAN':
+                case 'CLEAR':
+                    await ecommerceHandlers.handleClearCart(msg);
+                    return;
+                
+                case 'CHECKOUT':
+                case 'PESAN':
+                case 'ORDER':
+                    await ecommerceHandlers.handleCheckout(msg);
+                    return;
+                
+                case 'CEK':
+                case 'CHECK':
+                case 'TRACK':
+                    if (args.length > 0) {
+                        const orderId = args[0].toUpperCase();
+                        await ecommerceHandlers.handleOrderTracking(msg, orderId);
+                    } else {
+                        // Try to extract order ID from message
+                        const orderId = MessageParser.parseOrderId(pesan);
+                        if (orderId) {
+                            await ecommerceHandlers.handleOrderTracking(msg, orderId);
+                        } else {
+                            await msg.reply('💬 Ketik *CEK <order-id>* untuk mengecek status pesanan\nContoh: CEK ORD-123ABC');
+                        }
+                    }
+                    return;
+                
+                case 'PESANAN':
+                case 'ORDERS':
+                case 'RIWAYAT':
+                case 'HISTORY':
+                    await ecommerceHandlers.handleOrderHistory(msg);
+                    return;
+                
+                case 'HELP':
+                case 'MENU':
+                    await ecommerceHandlers.handleHelp(msg);
+                    return;
+                
+                case 'INFO':
+                    await ecommerceHandlers.handleStoreInfo(msg);
+                    return;
+            }
+        }
+        
+        // ========================================
+        // FALLBACK: DYNAMIC TRIGGER SYSTEM
+        // ========================================
+        
+        // Check for greetings
+        if (MessageParser.isGreeting(pesan)) {
+            await msg.reply('Halo! 👋 Selamat datang di toko kami.\n\n💬 Ketik *HELP* untuk melihat menu\n💬 Ketik *KATALOG* untuk mulai belanja');
+            return;
+        }
+        
+        // Check for thank you
+        if (MessageParser.isThankYou(pesan)) {
+            await msg.reply('Sama-sama! 😊 Terima kasih telah berbelanja dengan kami.');
+            return;
+        }
         
         // 1. Check exact commands (case-insensitive)
         for (const cmd of triggers.commands || []) {
@@ -237,13 +419,56 @@ client.on('message', async (msg) => {
             }
         }
         
-        // Pesan lain: bot diam
-        console.log('⚠️ Tidak ada trigger yang cocok');
+        // Default response: suggest help
+        if (pesan.length > 5) { // Avoid responding to very short messages
+            await msg.reply('Maaf, saya tidak mengerti perintah tersebut. 🤔\n\n💬 Ketik *HELP* untuk melihat menu yang tersedia.');
+        }
         
     } catch (error) {
         console.error('❌ Error handling message:', error);
+        try {
+            await msg.reply('❌ Maaf, terjadi kesalahan. Silakan coba lagi.');
+        } catch (replyError) {
+            console.error('Failed to send error message:', replyError);
+        }
     }
 });
 
 console.log('Memulai WhatsApp Bot...');
-client.initialize();
+
+// Initialize services first, then start client
+initializeServices().then(() => {
+    client.initialize();
+}).catch(error => {
+    console.error('❌ Failed to initialize services:', error);
+    process.exit(1);
+});
+
+// Notification sender (sends queued notifications from webhook)
+function startNotificationSender() {
+    setInterval(async () => {
+        if (!whatsappClient || !global.pendingNotifications) return;
+        
+        const notifications = global.pendingNotifications || [];
+        global.pendingNotifications = [];
+        
+        for (const notif of notifications) {
+            try {
+                const chatId = notif.customerId.includes('@') 
+                    ? notif.customerId 
+                    : notif.customerId + '@c.us';
+                
+                await whatsappClient.sendMessage(chatId, notif.message);
+                console.log(`✅ Notification sent to ${notif.customerId}`);
+                
+                // Save outgoing message to chat history
+                await chatService.addMessage(notif.customerId, notif.message, 'outgoing', {
+                    ...notif.metadata,
+                    sentVia: 'notification'
+                });
+            } catch (error) {
+                console.error(`❌ Failed to send notification to ${notif.customerId}:`, error);
+            }
+        }
+    }, 5000); // Check every 5 seconds
+}
