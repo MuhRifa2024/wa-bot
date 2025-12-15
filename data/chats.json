@@ -1,1 +1,58 @@
-[]
+{
+  "6285314627451@c.us": [
+    {
+      "id": "MSG-1765765007203-1RPJA5TI5",
+      "customerId": "6285314627451@c.us",
+      "message": "gak ada",
+      "direction": "incoming",
+      "timestamp": "2025-12-15T02:16:47.204Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACCB279EEFAF05D9679BE79C0A135B59",
+        "timestamp": 1765764259,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1765765087113-NL1VPXB2K",
+      "customerId": "6285314627451@c.us",
+      "message": "bapaknya minta langsung kerjain laporan ama luaran",
+      "direction": "incoming",
+      "timestamp": "2025-12-15T02:18:07.113Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACE9B6A4581FA6D68FFB2725D8C59F67",
+        "timestamp": 1765764670,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1765765089627-H3ZG2NPNJ",
+      "customerId": "6285314627451@c.us",
+      "message": "mau mulai dicicil?",
+      "direction": "incoming",
+      "timestamp": "2025-12-15T02:18:09.627Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC4976C050642671FF972C458FD56E75",
+        "timestamp": 1765764675,
+        "source": "whatsapp"
+      }
+    }
+  ],
+  "6285559401907@c.us": [
+    {
+      "id": "MSG-1765765081994-ISOSN27UU",
+      "customerId": "6285559401907@c.us",
+      "message": "",
+      "direction": "incoming",
+      "timestamp": "2025-12-15T02:18:01.995Z",
+      "read": false,
+      "metadata": {
+        "messageId": "3EB0D9E9D05E2138ACD2",
+        "timestamp": 1765765079,
+        "source": "whatsapp"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "watch": ["index.js", "lib/**/*.js", ".env"],
+  "ignore": [
+    ".wwebjs_auth/**",
+    ".wwebjs_cache/**",
+    "data/**/*.json",
+    "node_modules/**"
+  ],
+  "delay": 2000,
+  "verbose": true,
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

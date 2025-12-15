@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "node index.js",
+    "dev": "nodemon index.js",
     "pm2-start": "pm2 start ecosystem.config.js --env production",
     "pm2-stop": "pm2 stop wa-bot || true",
     "pm2-restart": "pm2 restart wa-bot || true",
@@ -25,5 +25,8 @@
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.34.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }
