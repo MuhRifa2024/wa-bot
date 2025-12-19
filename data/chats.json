@@ -54,5 +54,46 @@
         "source": "whatsapp"
       }
     }
+  ],
+  "6288218271426@c.us": [
+    {
+      "id": "MSG-1766125201913-7Z00BJQSW",
+      "customerId": "6288218271426@c.us",
+      "message": "halo",
+      "direction": "incoming",
+      "timestamp": "2025-12-19T06:20:01.913Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC7C7EE3E492429F003DAEB8E4EB4371",
+        "timestamp": 1766125202,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766125215112-UCM8V4XNW",
+      "customerId": "6288218271426@c.us",
+      "message": "KATALOG",
+      "direction": "incoming",
+      "timestamp": "2025-12-19T06:20:15.112Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC5F0BFF97F18FFCB9EE304E8F1EAED2",
+        "timestamp": 1766125215,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766125255674-HW0U3LC0I",
+      "customerId": "6288218271426@c.us",
+      "message": "KERANJANG",
+      "direction": "incoming",
+      "timestamp": "2025-12-19T06:20:55.674Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACBA424C38425725C81B0F7598904CE9",
+        "timestamp": 1766125256,
+        "source": "whatsapp"
+      }
+    }
   ]
 }

@@ -332,73 +332,138 @@ client.on('authenticated', () => {
 
 client.on('auth_failure', async (msg) => {
     console.error('❌ Autentikasi gagal:', msg);
-    console.log('🔄 Menghapus session dan restart untuk generate QR baru...');
+    console.log('🔄 Auto-recovery: Session akan dihapus dan bot akan restart...');
     
     try {
-        // Destroy client
-        await client.destroy().catch(() => {});
+        // Destroy client completely
+        console.log('⏳ Menghentikan WhatsApp client...');
+        await client.destroy().catch((err) => {
+            console.log('⚠️  Client destroy warning:', err.message);
+        });
         
-        // Delete session folder
+        // Wait for Chrome to fully close
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Try to delete session folder with retry
         const sessionPath = path.join(__dirname, '.wwebjs_auth');
         const cachePath = path.join(__dirname, '.wwebjs_cache');
         
-        if (fs.existsSync(sessionPath)) {
-            fs.rmSync(sessionPath, { recursive: true, force: true });
-            console.log('✅ Session folder dihapus');
+        console.log('🗑️  Menghapus session folder...');
+        
+        // Delete with retry mechanism (max 3 attempts)
+        for (let i = 0; i < 3; i++) {
+            try {
+                if (fs.existsSync(sessionPath)) {
+                    fs.rmSync(sessionPath, { recursive: true, force: true, maxRetries: 3, retryDelay: 1000 });
+                    console.log('✅ Session folder dihapus');
+                }
+                
+                if (fs.existsSync(cachePath)) {
+                    fs.rmSync(cachePath, { recursive: true, force: true, maxRetries: 3, retryDelay: 1000 });
+                    console.log('✅ Cache folder dihapus');
+                }
+                
+                break; // Success, exit retry loop
+            } catch (error) {
+                if (i === 2) {
+                    // Last attempt failed, continue anyway
+                    console.log('⚠️  Gagal hapus folder (file mungkin masih terkunci), melanjutkan restart...');
+                } else {
+                    console.log(`⏳ Retry ${i + 1}/3...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
         }
         
-        if (fs.existsSync(cachePath)) {
-            fs.rmSync(cachePath, { recursive: true, force: true });
-            console.log('✅ Cache folder dihapus');
-        }
-        
-        // Restart in 3 seconds
-        console.log('⏳ Restarting dalam 3 detik...');
+        // Restart in 2 seconds (let nodemon handle restart)
+        console.log('⏳ Restarting dalam 2 detik untuk generate QR baru...');
         setTimeout(() => {
-            process.exit(1); // Exit with error code, PM2/nodemon will restart
-        }, 3000);
+            process.exit(1); // Exit with error code, nodemon/PM2 will auto-restart
+        }, 2000);
         
     } catch (error) {
-        console.error('Error saat cleanup:', error);
-        process.exit(1);
+        console.error('❌ Error saat cleanup:', error.message);
+        // Force restart anyway
+        console.log('🔄 Force restarting...');
+        setTimeout(() => process.exit(1), 1000);
     }
 });
 
 client.on('disconnected', async (reason) => {
     console.log('⚠️  Bot terputus:', reason);
+    console.log('📊 Status: botIsReady=', botIsReady, 'botIsAuthenticated=', botIsAuthenticated);
     
-    // Auto-recovery untuk LOGOUT atau CONNECTION_LOST
+    // Auto-recovery untuk LOGOUT atau NAVIGATION
     if (reason === 'LOGOUT' || reason === 'NAVIGATION') {
-        console.log('🔄 Mendeteksi logout/navigation, menghapus session untuk QR baru...');
+        console.log('🔄 Mendeteksi logout/navigation, memulai auto-recovery...');
         
         try {
-            // Delete session folder
+            // Destroy client first
+            console.log('⏳ Menghentikan WhatsApp client...');
+            await client.destroy().catch((err) => {
+                console.log('⚠️  Client destroy warning:', err.message);
+            });
+            
+            // Wait for Chrome to fully close
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Delete session folder with retry
             const sessionPath = path.join(__dirname, '.wwebjs_auth');
             const cachePath = path.join(__dirname, '.wwebjs_cache');
             
-            if (fs.existsSync(sessionPath)) {
-                fs.rmSync(sessionPath, { recursive: true, force: true });
-                console.log('✅ Session folder dihapus');
+            console.log('🗑️  Menghapus session folder...');
+            
+            // Retry delete mechanism
+            for (let i = 0; i < 3; i++) {
+                try {
+                    if (fs.existsSync(sessionPath)) {
+                        fs.rmSync(sessionPath, { 
+                            recursive: true, 
+                            force: true,
+                            maxRetries: 3,
+                            retryDelay: 1000
+                        });
+                        console.log('✅ Session folder dihapus');
+                    }
+                    
+                    if (fs.existsSync(cachePath)) {
+                        fs.rmSync(cachePath, { 
+                            recursive: true, 
+                            force: true,
+                            maxRetries: 3,
+                            retryDelay: 1000
+                        });
+                        console.log('✅ Cache folder dihapus');
+                    }
+                    
+                    break; // Success
+                } catch (error) {
+                    if (i === 2) {
+                        console.log('⚠️  Gagal hapus folder (file terkunci), melanjutkan restart...');
+                    } else {
+                        console.log(`⏳ Retry ${i + 1}/3...`);
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                    }
+                }
             }
             
-            if (fs.existsSync(cachePath)) {
-                fs.rmSync(cachePath, { recursive: true, force: true });
-                console.log('✅ Cache folder dihapus');
-            }
-            
-            // Restart in 2 seconds
+            // Restart to generate new QR
             console.log('⏳ Restarting dalam 2 detik untuk generate QR baru...');
+            console.log('💡 Nodemon akan auto-restart bot');
             setTimeout(() => {
-                process.exit(1); // Exit, PM2/nodemon will auto restart
+                process.exit(1); // Exit, nodemon/PM2 will auto-restart
             }, 2000);
             
         } catch (error) {
-            console.error('Error saat cleanup:', error);
-            process.exit(1);
+            console.error('❌ Error saat auto-recovery:', error.message);
+            // Force restart anyway
+            console.log('🔄 Force restarting...');
+            setTimeout(() => process.exit(1), 1000);
         }
     } else {
         // For other disconnect reasons, just try to reconnect
-        console.log('🔄 Mencoba reconnect...');
+        console.log('🔄 Disconnect reason lain, mencoba reconnect...');
+        console.log('💡 Session tetap disimpan untuk reconnect otomatis');
         botIsReady = false;
         botIsAuthenticated = false;
     }
