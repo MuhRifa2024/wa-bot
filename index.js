@@ -16,8 +16,10 @@ const CustomerService = require('./lib/services/CustomerService');
 const ChatService = require('./lib/services/ChatService');
 const WebChatService = require('./lib/services/WebChatService');
 const EcommerceHandlers = require('./lib/handlers/EcommerceHandlers');
+const AdminHandlers = require('./lib/handlers/AdminHandlers');
 const WebhookHandler = require('./lib/utils/WebhookHandler');
 const MessageParser = require('./lib/utils/MessageParser');
+const AdminAuth = require('./lib/utils/AdminAuth');
 
 // Initialize Database (if MySQL mode)
 let dbAdapter = null;
@@ -48,6 +50,7 @@ let customerService;
 let chatService;
 let webChatService;
 let ecommerceHandlers;
+let adminHandlers;
 let webhookHandler;
 
 // Load dynamic triggers
@@ -109,6 +112,7 @@ async function initializeServices() {
     
     // Initialize handlers with all services
     ecommerceHandlers = new EcommerceHandlers(productService, orderService, customerService);
+    adminHandlers = new AdminHandlers(productService, orderService, customerService);
     webhookHandler = new WebhookHandler(
         productService, 
         orderService, 
@@ -491,6 +495,30 @@ client.on('message', async (msg) => {
             messageId: msg.id.id,
             timestamp: msg.timestamp
         });
+        
+        // ========================================
+        // ADMIN PANEL TRIGGER
+        // ========================================
+        
+        // Check for admin panel keyword (secret trigger)
+        if (pesan === '9090' || pesan.toUpperCase() === 'PANEL') {
+            await adminHandlers.handleAdminPanel(msg);
+            return;
+        }
+        
+        // Check if admin is in admin flow
+        const adminSession = adminHandlers.getAdminSession(sender);
+        if (adminSession.state !== 'idle') {
+            // Handle image upload for admin
+            if (msg.hasMedia && (adminSession.state === 'add_product_image' || adminSession.state === 'edit_product_image')) {
+                const handled = await adminHandlers.handleImageUpload(msg, adminSession);
+                if (handled) return;
+            }
+            
+            // Handle admin flow
+            const handled = await adminHandlers.handleAdminFlow(msg, pesan);
+            if (handled) return;
+        }
         
         // ========================================
         // E-COMMERCE COMMAND ROUTING
