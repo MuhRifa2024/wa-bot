@@ -116,6 +116,45 @@
         "timestamp": 1766248781,
         "source": "whatsapp"
       }
+    },
+    {
+      "id": "MSG-1766249004776-LGUIVNIP9",
+      "customerId": "6285314627451@c.us",
+      "message": "panel",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:43:24.776Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC9B2E23B1F67F296A0CCDDF031E71D8",
+        "timestamp": 1766249005,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766249065069-48B21GKSI",
+      "customerId": "6285314627451@c.us",
+      "message": "panel",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:44:25.069Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC082F8BD9A98DC1A31F940B99F9BCB6",
+        "timestamp": 1766249065,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766249084318-Y1A9OEK3O",
+      "customerId": "6285314627451@c.us",
+      "message": "0",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:44:44.318Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC18ED0612838F8BA28521664D82752B",
+        "timestamp": 1766249084,
+        "source": "whatsapp"
+      }
     }
   ],
   "6285559401907@c.us": [
@@ -482,6 +521,45 @@
       "metadata": {
         "messageId": "ACA4D597B39C53E52980EA60F95D6622",
         "timestamp": 1766248835,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766249004419-18JQW1XYR",
+      "customerId": "6288218271426@c.us",
+      "message": "panel",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:43:24.419Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC2C4EF4BD38F940EE43E4D62849D0C4",
+        "timestamp": 1766249004,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766249071747-AB37N3RDZ",
+      "customerId": "6288218271426@c.us",
+      "message": "panel",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:44:31.747Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC939EF45EB17165A398123E0967FB6B",
+        "timestamp": 1766249071,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766249078306-JRXUFNQUB",
+      "customerId": "6288218271426@c.us",
+      "message": "0",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:44:38.306Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC1EC23B095B3266B708DF410ABEE1E7",
+        "timestamp": 1766249078,
         "source": "whatsapp"
       }
     }
