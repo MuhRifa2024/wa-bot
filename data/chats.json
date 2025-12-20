@@ -90,6 +90,32 @@
         "timestamp": 1766242127,
         "source": "whatsapp"
       }
+    },
+    {
+      "id": "MSG-1766248798127-1THJ988L6",
+      "customerId": "6285314627451@c.us",
+      "message": "halo",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:39:58.127Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC1878102C7866C4054D9D448F449E5F",
+        "timestamp": 1766248769,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766248819882-NRV5USAI9",
+      "customerId": "6285314627451@c.us",
+      "message": "panel",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:40:19.882Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACC70D1A7BBF01DC3C2BEFE9B2106809",
+        "timestamp": 1766248781,
+        "source": "whatsapp"
+      }
     }
   ],
   "6285559401907@c.us": [
@@ -443,6 +469,19 @@
       "metadata": {
         "messageId": "AC82929A6A96B76442DE768160B254AC",
         "timestamp": 1766247647,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766248843922-HLB6APC4D",
+      "customerId": "6288218271426@c.us",
+      "message": "panel",
+      "direction": "incoming",
+      "timestamp": "2025-12-20T16:40:43.922Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACA4D597B39C53E52980EA60F95D6622",
+        "timestamp": 1766248835,
         "source": "whatsapp"
       }
     }
