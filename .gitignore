@@ -14,6 +14,7 @@ node_modules/
 # data/products.json
 # data/orders.json
 # data/customers.json
+data/chats.json
 
 # Logs
 *.log
