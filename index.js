@@ -251,7 +251,7 @@ app.get('/events', (req, res) => {
         });
 });
 
-const PORT = process.env.PORT || process.env.BOT_PORT || 5000;
+const ORT = process.env.PORT || process.env.BOT_PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 Server web berjalan di http://localhost:${PORT}`);
     console.log(`📡 API Endpoint: http://localhost:${PORT}/api`);
