@@ -1,9 +1,13 @@
-﻿const { Client, LocalAuth } = require('whatsapp-web.js');
+﻿const fs = require('fs');
+if (!fs.existsSync('./admin-config.json') && process.env.ADMIN_CONFIG_JSON) {
+    fs.writeFileSync('./admin-config.json', process.env.ADMIN_CONFIG_JSON);
+}
+
+const { Client, LocalAuth } = require('whatsapp-web.js');
 // const qrcode = require('qrcode-terminal'); // Not used: QR only shown in browser
 const express = require('express');
 const QRCode = require('qrcode');
 const math = require('mathjs');
-const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 require('dotenv').config(); // Load environment variables

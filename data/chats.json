@@ -90,6 +90,110 @@
         "timestamp": 1766242127,
         "source": "whatsapp"
       }
+    },
+    {
+      "id": "MSG-1767089373092-X9MNROLXH",
+      "customerId": "6285314627451@c.us",
+      "message": "halo",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:33.092Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACCF3C5D6A8CC57D5797A64F660915C9",
+        "timestamp": 1766391683,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767089373415-DFG1Y4H8I",
+      "customerId": "6285314627451@c.us",
+      "message": "katalog",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:33.415Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC8975DA3872BA50A071EA908A716AB3",
+        "timestamp": 1766391692,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767089373579-9N9IZZXKM",
+      "customerId": "6285314627451@c.us",
+      "message": "katalog",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:33.579Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACABF252943BA10C10EF91332CC0F213",
+        "timestamp": 1766392285,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767089373704-M9W0G5CKT",
+      "customerId": "6285314627451@c.us",
+      "message": "help",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:33.704Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACCB27A73529814AE34FD61A4E1C7079",
+        "timestamp": 1766392290,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767089374707-FH9RBJ3XQ",
+      "customerId": "6285314627451@c.us",
+      "message": "katalog",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:34.707Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACCAC4AFBFD1D332BE0CEEDBD0FE5901",
+        "timestamp": 1766392935,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767089374996-3I9LQZ781",
+      "customerId": "6285314627451@c.us",
+      "message": "beli 2 1",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:34.996Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC98884AE0C212474966D598FA6DFD48",
+        "timestamp": 1766393070,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767089375143-07MNG0UGM",
+      "customerId": "6285314627451@c.us",
+      "message": "keranjang",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:35.143Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACADAD358509FECE5D0091E7111A7309",
+        "timestamp": 1766393079,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767089375353-TWJ75RI0H",
+      "customerId": "6285314627451@c.us",
+      "message": "beli 002 1",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:09:35.353Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC7A39242FEAA20C34CE52683E8AEFC1",
+        "timestamp": 1766393096,
+        "source": "whatsapp"
+      }
     }
   ],
   "6285559401907@c.us": [
@@ -508,6 +612,32 @@
       "metadata": {
         "messageId": "3EB0731092D3EF0DC7A824",
         "timestamp": 1766320033,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766328271877-9BI6S7OBK",
+      "customerId": "6288218271426@c.us",
+      "message": "halo",
+      "direction": "incoming",
+      "timestamp": "2025-12-21T14:44:31.877Z",
+      "read": false,
+      "metadata": {
+        "messageId": "3EB07BB32E66488766A11F",
+        "timestamp": 1766328271,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1766328290402-PU4MDXWM0",
+      "customerId": "6288218271426@c.us",
+      "message": "katalog",
+      "direction": "incoming",
+      "timestamp": "2025-12-21T14:44:50.402Z",
+      "read": false,
+      "metadata": {
+        "messageId": "3EB0DA7C4D85B8A60EA4B4",
+        "timestamp": 1766328290,
         "source": "whatsapp"
       }
     }
@@ -1589,6 +1719,60 @@
       "metadata": {
         "messageId": "AC231F6B9A63739958B1AA18C0C356D6",
         "timestamp": 1766247766,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767090998539-JNCT4LY2F",
+      "customerId": "6289637454341@c.us",
+      "message": "halo",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:36:38.539Z",
+      "read": false,
+      "metadata": {
+        "messageId": "ACC5E044F4907719D578D04A53271337",
+        "timestamp": 1767090997,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767091039188-YNUH0LM0Z",
+      "customerId": "6289637454341@c.us",
+      "message": "9090",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:37:19.188Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC52CFC7A9B79AEC7360F830CED85F98",
+        "timestamp": 1767091038,
+        "source": "whatsapp"
+      }
+    },
+    {
+      "id": "MSG-1767091050204-UVA8BPY42",
+      "customerId": "6289637454341@c.us",
+      "message": "0",
+      "direction": "incoming",
+      "timestamp": "2025-12-30T10:37:30.204Z",
+      "read": false,
+      "metadata": {
+        "messageId": "AC6527B48E7A1BFFF1206319C79AF360",
+        "timestamp": 1767091049,
+        "source": "whatsapp"
+      }
+    }
+  ],
+  "0@c.us": [
+    {
+      "id": "MSG-1766328360514-HTS4M9XY1",
+      "customerId": "0@c.us",
+      "message": "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",
+      "direction": "incoming",
+      "timestamp": "2025-12-21T14:46:00.514Z",
+      "read": false,
+      "metadata": {
+        "messageId": "1105768194682014-1",
+        "timestamp": 1766328360,
         "source": "whatsapp"
       }
     }
